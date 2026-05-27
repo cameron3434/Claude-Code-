@@ -30,6 +30,10 @@
   header.hero h1 { margin: 12px 0 4px; font-size: 26px; line-height: 1.2; }
   header.hero .addr { color: var(--muted); font-size: 15px; margin: 0; }
   header.hero .date { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  .brandlogo { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px; }
+  .brandlogo .word { font-size: 21px; font-weight: 800; letter-spacing: .5px; color: var(--brand); line-height: 1.05; text-align: left; }
+  .brandlogo .word b { color: var(--safety-dark); }
+  .brandlogo .word small { display: block; font-size: 10px; letter-spacing: 3px; color: var(--muted); font-weight: 700; margin-top: 3px; }
 
   .card {
     background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
@@ -112,7 +116,15 @@
 
 <div id="app" class="wrap">
   <header class="hero">
-    <span class="badge">ADU West Coast &middot; Open House</span>
+    <!-- Placeholder wordmark — swap this whole block for <img src="..."> when the real logo file is available -->
+    <div class="brandlogo" role="img" aria-label="ADU West Coast">
+      <svg width="46" height="46" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M32 6 L60 30 H4 Z" fill="#f5a623"/>
+        <rect x="12" y="30" width="40" height="28" rx="2" fill="#14507a"/>
+        <rect x="28" y="41" width="8" height="17" fill="#ffffff"/>
+      </svg>
+      <span class="word"><b>ADU</b> WEST COAST<small>OPEN HOUSE</small></span>
+    </div>
     <h1>Welcome — Please Sign In</h1>
     <p class="addr">15623 Van Ness Ave, Gardena, CA 90249</p>
     <p class="date" id="todayLine"></p>
