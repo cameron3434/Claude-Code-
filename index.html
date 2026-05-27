@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Open House Sign-In &middot; ADU West Coast</title>
+<style>
+  :root {
+    --ink: #1c2530;
+    --muted: #5b6b7b;
+    --line: #e1e6ec;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --brand: #14507a;
+    --brand-dark: #0e3a59;
+    --safety: #f5a623;
+    --safety-dark: #d98a00;
+    --good: #1d8a4e;
+    --bad: #c0392b;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  .stripe {
+    height: 10px;
+    background: repeating-linear-gradient(45deg, var(--safety) 0 22px, var(--ink) 22px 44px);
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 18px 16px 56px; }
+  header.hero {
+    text-align: center;
+    padding: 22px 12px 6px;
+  }
+  header.hero .badge {
+    display: inline-block;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--brand);
+    font-weight: 800;
+    background: #e8f1f8;
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+  header.hero h1 {
+    margin: 12px 0 4px;
+    font-size: 26px;
+    line-height: 1.2;
+  }
+  header.hero .addr { color: var(--muted); font-size: 15px; margin: 0; }
+  header.hero .date { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 18px;
+    box-shadow: 0 1px 2px rgba(16,32,48,.04);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 19px; }
+  .card .hint { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+
+  label.field { display: block; margin-bottom: 16px; }
+  label.field .lab { display: block; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  input[type="text"], input[type="tel"], input[type="email"] {
+    width: 100%;
+    font-size: 17px;
+    padding: 14px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    background: #fbfcfe;
+    color: var(--ink);
+  }
+  input:focus { outline: none; border-color: var(--brand); background: #fff; }
+
+  .waiver {
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    background: #fbfcfe;
+    padding: 14px 16px;
+    max-height: 240px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    color: #33424f;
+    -webkit-overflow-scrolling: touch;
+  }
+  .waiver h3 { margin: 0 0 8px; font-size: 15px; color: var(--ink); }
+  .waiver p { margin: 0 0 10px; }
+  .waiver ul { margin: 0 0 10px; padding-left: 20px; }
+  .waiver li { margin-bottom: 6px; }
+  .waiver .legal { color: var(--muted); font-size: 12px; font-style: italic; }
+
+  .checkrow {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    cursor: pointer;
+    background: #fff;
+  }
+  .checkrow.required { border-color: #f0d9a8; background: #fffdf6; }
+  .checkrow input { width: 26px; height: 26px; margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--brand); }
+  .checkrow span { font-size: 14.5px; }
+  .checkrow span b { color: var(--ink); }
+
+  .siglabel { font-weight: 700; font-size: 15px; margin: 4px 0 8px; }
+  .sigwrap { position: relative; }
+  canvas#pad {
+    width: 100%;
+    height: 190px;
+    border: 1.5px dashed #c4ccd4;
+    border-radius: 12px;
+    background:
+      linear-gradient(#fff, #fff) padding-box,
+      #fff;
+    touch-action: none;
+    display: block;
+  }
+  .sigline {
+    position: absolute;
+    left: 18px; right: 18px; bottom: 42px;
+    border-bottom: 1.5px solid #d7dde3;
+    pointer-events: none;
+  }
+  .sigx { position: absolute; left: 18px; bottom: 44px; color: #aeb7c0; font-size: 18px; pointer-events: none; }
+  .sigtools { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .sigtools .ph { color: var(--muted); font-size: 13px; }
+  .linkbtn {
+    background: none; border: none; color: var(--brand); font-weight: 700;
+    font-size: 14px; cursor: pointer; padding: 6px 4px;
+  }
+
+  .btn {
+    display: block; width: 100%;
+    font-size: 18px; font-weight: 800;
+    padding: 17px; border: none; border-radius: 14px;
+    cursor: pointer; margin-top: 20px;
+    background: var(--brand); color: #fff;
+    box-shadow: 0 2px 0 var(--brand-dark);
+  }
+  .btn:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--brand-dark); }
+  .btn.safety { background: var(--safety); color: #2a2110; box-shadow: 0 2px 0 var(--safety-dark); }
+  .btn.ghost { background: #eef1f5; color: var(--ink); box-shadow: none; border: 1.5px solid var(--line); }
+
+  .err {
+    display: none;
+    background: #fdecea; color: var(--bad);
+    border: 1px solid #f5c6cf; border-radius: 10px;
+    padding: 12px 14px; font-size: 14px; font-weight: 600;
+    margin-top: 16px;
+  }
+  .err.show { display: block; }
+
+  /* thank-you screen */
+  #thanks { text-align: center; padding: 30px 10px; }
+  #thanks .check {
+    width: 84px; height: 84px; margin: 0 auto 16px;
+    border-radius: 50%; background: var(--good); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 46px;
+  }
+  #thanks h2 { font-size: 24px; margin: 0 0 6px; }
+  #thanks p { color: var(--muted); margin: 0 0 4px; }
+  #thanks .countdown { font-size: 13px; color: var(--muted); margin-top: 18px; }
+
+  footer.foot { text-align: center; margin-top: 30px; color: var(--muted); font-size: 12px; }
+  footer.foot button { color: #9aa4ae; background: none; border: none; font-size: 12px; cursor: pointer; }
+
+  .hidden { display: none !important; }
+
+  /* admin */
+  #admin { position: fixed; inset: 0; background: var(--bg); overflow-y: auto; z-index: 50; }
+  #admin .wrap { padding-top: 24px; }
+  .adminbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 18px; }
+  .adminbar button {
+    flex: 1 1 auto; min-width: 130px;
+    font-size: 14px; font-weight: 700; padding: 12px; border-radius: 10px;
+    border: 1.5px solid var(--line); background: #fff; cursor: pointer;
+  }
+  .adminbar button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .adminbar button.danger { background: #fff; color: var(--bad); border-color: #f0c4c0; }
+  .count { font-size: 15px; font-weight: 700; }
+  .count span { color: var(--brand); }
+  table.entries { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13.5px; }
+  table.entries th, table.entries td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.entries th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  table.entries img.sig { height: 44px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+  .empty { color: var(--muted); text-align: center; padding: 30px; }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+
+<!-- ============ SIGN-IN FORM ============ -->
+<div id="app" class="wrap">
+  <header class="hero">
+    <span class="badge">ADU West Coast &middot; Open House</span>
+    <h1>Welcome — Please Sign In</h1>
+    <p class="addr">15623 Van Ness Ave, Gardena, CA 90249</p>
+    <p class="date" id="todayLine"></p>
+  </header>
+
+  <form id="signinForm" novalidate>
+    <div class="card">
+      <h2>Your Information</h2>
+      <p class="hint">We'll use this to know who's on site and to follow up if you'd like.</p>
+
+      <label class="field">
+        <span class="lab">Full Name</span>
+        <input type="text" id="name" autocomplete="name" placeholder="Jane Doe" />
+      </label>
+      <label class="field">
+        <span class="lab">Phone Number</span>
+        <input type="tel" id="phone" autocomplete="tel" inputmode="tel" placeholder="(310) 555-0123" />
+      </label>
+      <label class="field" style="margin-bottom:0;">
+        <span class="lab">Email</span>
+        <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="you@email.com" />
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>Construction Site Waiver &amp; Release</h2>
+      <p class="hint">Please read carefully and scroll to the bottom.</p>
+      <div class="waiver" id="waiverBox" tabindex="0">
+        <h3>Assumption of Risk, Waiver &amp; Release of Liability</h3>
+        <p>I am voluntarily entering an <b>active construction site</b> located at <b>15623 Van Ness Ave, Gardena, CA 90249</b> (the "Property") for an open house. I understand and acknowledge that a construction site is an inherently hazardous environment.</p>
+        <p>I understand the hazards may include, but are not limited to: uneven or unfinished flooring and stairs, exposed nails, tools, materials and debris, open trenches or excavations, electrical wiring, dust and fumes, falling objects, heavy equipment, and slip, trip, and fall risks.</p>
+        <p>In exchange for being permitted to enter the Property, I agree that:</p>
+        <ul>
+          <li>I <b>voluntarily assume all risks</b> of personal injury, illness, death, or property damage arising from my presence at the Property.</li>
+          <li>I will follow all posted signs and the verbal safety instructions of the owner and their representatives, and will wear any required personal protective equipment.</li>
+          <li>I will not enter areas marked as restricted or closed off.</li>
+          <li>I am responsible for the safety and supervision of any minors or guests I bring, and the same assumption of risk applies to them.</li>
+          <li>I <b>release, waive, and hold harmless</b> the property owner, ADU West Coast, the general contractor, and their respective agents, employees, and affiliates from any and all claims, demands, or causes of action arising out of my visit, to the fullest extent permitted by law.</li>
+        </ul>
+        <p>I confirm that I am at least 18 years of age (or accompanied and represented by a parent/guardian), that the information I provided is accurate, and that I am signing this waiver freely.</p>
+        <p class="legal">This is a general acknowledgment for an open house and is not legal advice. For a binding waiver tailored to your project, have it reviewed by a licensed attorney.</p>
+      </div>
+
+      <label class="checkrow required">
+        <input type="checkbox" id="agree" />
+        <span><b>I have read, understand, and agree</b> to the Construction Site Waiver &amp; Release above.</span>
+      </label>
+      <label class="checkrow">
+        <input type="checkbox" id="consent" />
+        <span>I'd like to receive information about ADU West Coast projects (optional).</span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>Signature</h2>
+      <p class="hint">Sign with your finger or stylus to confirm your agreement.</p>
+      <div class="siglabel">Signed by: <span id="sigName" style="color:var(--brand)">—</span></div>
+      <div class="sigwrap">
+        <canvas id="pad"></canvas>
+        <div class="sigline"></div>
+        <div class="sigx">✗</div>
+      </div>
+      <div class="sigtools">
+        <span class="ph">Sign above the line</span>
+        <button type="button" class="linkbtn" id="clearSig">Clear signature</button>
+      </div>
+    </div>
+
+    <div class="err" id="errBox"></div>
+    <button type="submit" class="btn safety">Sign In &amp; Enter Site &nbsp;→</button>
+  </form>
+
+  <footer class="foot">
+    <p>Your information is kept private on this device for the property owner only.</p>
+    <button type="button" id="hostBtn">Host menu</button>
+  </footer>
+</div>
+
+<!-- ============ THANK YOU ============ -->
+<div id="thanks" class="wrap hidden">
+  <div class="card">
+    <div class="check">✓</div>
+    <h2>You're signed in!</h2>
+    <p id="thanksName">Thank you.</p>
+    <p>Please stay safe and enjoy the open house.</p>
+    <p class="countdown" id="countdown"></p>
+    <button type="button" class="btn ghost" id="nextBtn">Sign in next visitor</button>
+  </div>
+</div>
+
+<!-- ============ ADMIN ============ -->
+<div id="admin" class="hidden">
+  <div class="stripe"></div>
+  <div class="wrap">
+    <header class="hero" style="padding-bottom:0;">
+      <span class="badge">Host Menu</span>
+      <h1 style="font-size:22px;">Open House Sign-Ins</h1>
+      <p class="addr">15623 Van Ness Ave, Gardena, CA 90249</p>
+    </header>
+    <div class="card">
+      <p class="count">Total sign-ins: <span id="totalCount">0</span></p>
+      <div class="adminbar">
+        <button class="primary" id="exportCsv">Export contacts (CSV)</button>
+        <button id="printWaivers">Print signed waivers</button>
+        <button id="backupJson">Download backup</button>
+        <button class="danger" id="clearAll">Clear all data</button>
+      </div>
+      <div id="entriesArea"></div>
+    </div>
+    <button type="button" class="btn ghost" id="closeAdmin">← Back to sign-in</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ====== CONFIG ====== */
+  var HOST_PIN = "1234"; // Change this PIN to protect the host menu.
+  var STORE_KEY = "adu_openhouse_signins_v1";
+  var EVENT = {
+    title: "ADU West Coast Open House",
+    address: "15623 Van Ness Ave, Gardena, CA 90249"
+  };
+  var RESET_SECONDS = 8;
+
+  /* ====== HELPERS ====== */
+  var $ = function (id) { return document.getElementById(id); };
+  function load() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function save(list) { localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  /* ====== TODAY LINE ====== */
+  (function () {
+    var d = new Date();
+    $("todayLine").textContent = d.toLocaleDateString(undefined,
+      { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  })();
+
+  /* ====== SIGNATURE PAD ====== */
+  var pad = $("pad");
+  var ctx = pad.getContext("2d");
+  var drawing = false, hasInk = false, last = null;
+
+  function sizePad() {
+    var rect = pad.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    pad.width = Math.round(rect.width * dpr);
+    pad.height = Math.round(rect.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = "#10243a";
+  }
+  function posFromEvent(e) {
+    var rect = pad.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+  function startDraw(e) {
+    e.preventDefault();
+    drawing = true;
+    last = posFromEvent(e);
+  }
+  function moveDraw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    var p = posFromEvent(e);
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    last = p;
+    hasInk = true;
+  }
+  function endDraw(e) { drawing = false; }
+
+  pad.addEventListener("pointerdown", startDraw);
+  pad.addEventListener("pointermove", moveDraw);
+  window.addEventListener("pointerup", endDraw);
+  pad.addEventListener("pointercancel", endDraw);
+
+  function clearPad() {
+    ctx.clearRect(0, 0, pad.width, pad.height);
+    hasInk = false;
+  }
+  $("clearSig").addEventListener("click", clearPad);
+  window.addEventListener("resize", function () { var had = hasInk; sizePad(); if (had) clearPad(); });
+  sizePad();
+
+  /* live "signed by" mirror */
+  $("name").addEventListener("input", function () {
+    $("sigName").textContent = this.value.trim() || "—";
+  });
+
+  /* ====== VALIDATION + SUBMIT ====== */
+  function showErr(msg) {
+    var box = $("errBox");
+    box.textContent = msg;
+    box.classList.add("show");
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function hideErr() { $("errBox").classList.remove("show"); }
+
+  function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function validPhone(v) { return (v.replace(/\D/g, "").length >= 7); }
+
+  $("signinForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    hideErr();
+    var name = $("name").value.trim();
+    var phone = $("phone").value.trim();
+    var email = $("email").value.trim();
+
+    if (!name) return showErr("Please enter your full name.");
+    if (!validPhone(phone)) return showErr("Please enter a valid phone number.");
+    if (!validEmail(email)) return showErr("Please enter a valid email address.");
+    if (!$("agree").checked) return showErr("Please read and agree to the Construction Site Waiver before entering.");
+    if (!hasInk) return showErr("Please add your signature to confirm your agreement.");
+
+    var entry = {
+      id: Date.now(),
+      name: name,
+      phone: phone,
+      email: email,
+      consent: $("consent").checked,
+      agreed: true,
+      signature: pad.toDataURL("image/png"),
+      ts: new Date().toISOString(),
+      tsLocal: new Date().toLocaleString()
+    };
+    var list = load();
+    list.push(entry);
+    save(list);
+    showThanks(name);
+  });
+
+  /* ====== THANK YOU + RESET ====== */
+  var cdTimer = null;
+  function resetForm() {
+    $("signinForm").reset();
+    $("sigName").textContent = "—";
+    clearPad();
+    hideErr();
+  }
+  function showThanks(name) {
+    $("app").classList.add("hidden");
+    var t = $("thanks");
+    t.classList.remove("hidden");
+    $("thanksName").textContent = "Thanks, " + name + " — you're all set.";
+    window.scrollTo(0, 0);
+    var left = RESET_SECONDS;
+    $("countdown").textContent = "Returning to sign-in in " + left + "s…";
+    cdTimer = setInterval(function () {
+      left--;
+      if (left <= 0) { backToForm(); return; }
+      $("countdown").textContent = "Returning to sign-in in " + left + "s…";
+    }, 1000);
+  }
+  function backToForm() {
+    if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
+    resetForm();
+    $("thanks").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    sizePad();
+    window.scrollTo(0, 0);
+  }
+  $("nextBtn").addEventListener("click", backToForm);
+
+  /* ====== ADMIN / HOST MENU ====== */
+  $("hostBtn").addEventListener("click", function () {
+    var pin = prompt("Enter host PIN:");
+    if (pin === null) return;
+    if (pin !== HOST_PIN) { alert("Incorrect PIN."); return; }
+    openAdmin();
+  });
+
+  function openAdmin() {
+    renderEntries();
+    $("admin").classList.remove("hidden");
+    window.scrollTo(0, 0);
+  }
+  $("closeAdmin").addEventListener("click", function () {
+    $("admin").classList.add("hidden");
+  });
+
+  function renderEntries() {
+    var list = load();
+    $("totalCount").textContent = list.length;
+    var area = $("entriesArea");
+    if (!list.length) {
+      area.innerHTML = '<p class="empty">No sign-ins yet.</p>';
+      return;
+    }
+    var rows = list.slice().reverse().map(function (e) {
+      return "<tr>" +
+        "<td>" + esc(e.name) +
+          (e.consent ? '<br><span style="color:var(--good);font-size:11px;">✓ wants info</span>' : "") +
+        "</td>" +
+        "<td>" + esc(e.phone) + "<br><span style='color:var(--muted)'>" + esc(e.email) + "</span></td>" +
+        "<td>" + esc(e.tsLocal || e.ts) + "</td>" +
+        "<td><img class='sig' src='" + e.signature + "' alt='signature'></td>" +
+        "</tr>";
+    }).join("");
+    area.innerHTML =
+      "<table class='entries'><thead><tr>" +
+      "<th>Name</th><th>Contact</th><th>Signed at</th><th>Signature</th>" +
+      "</tr></thead><tbody>" + rows + "</tbody></table>";
+  }
+
+  /* CSV export */
+  function csvCell(v) {
+    v = String(v == null ? "" : v);
+    if (/[",\n]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
+    return v;
+  }
+  $("exportCsv").addEventListener("click", function () {
+    var list = load();
+    if (!list.length) { alert("No sign-ins to export."); return; }
+    var header = ["Name", "Phone", "Email", "Wants Info", "Agreed Waiver", "Signed At"];
+    var lines = [header.map(csvCell).join(",")];
+    list.forEach(function (e) {
+      lines.push([
+        e.name, e.phone, e.email,
+        e.consent ? "Yes" : "No",
+        e.agreed ? "Yes" : "No",
+        e.tsLocal || e.ts
+      ].map(csvCell).join(","));
+    });
+    downloadFile("open-house-signins.csv", "text/csv", "﻿" + lines.join("\r\n"));
+  });
+
+  /* JSON backup */
+  $("backupJson").addEventListener("click", function () {
+    var list = load();
+    if (!list.length) { alert("No data to back up."); return; }
+    downloadFile("open-house-signins-backup.json", "application/json",
+      JSON.stringify({ event: EVENT, exported: new Date().toISOString(), entries: list }, null, 2));
+  });
+
+  /* Print signed waivers (with signatures) */
+  $("printWaivers").addEventListener("click", function () {
+    var list = load();
+    if (!list.length) { alert("No sign-ins to print."); return; }
+    var w = window.open("", "_blank");
+    if (!w) { alert("Please allow pop-ups to print."); return; }
+    var body = list.map(function (e) {
+      return '<div class="rec">' +
+        '<h2>' + esc(e.name) + '</h2>' +
+        '<p><b>Phone:</b> ' + esc(e.phone) + ' &nbsp; <b>Email:</b> ' + esc(e.email) + '</p>' +
+        '<p><b>Signed at:</b> ' + esc(e.tsLocal || e.ts) +
+          ' &nbsp; <b>Wants info:</b> ' + (e.consent ? "Yes" : "No") + '</p>' +
+        '<p>Acknowledged and agreed to the Construction Site Waiver &amp; Release of Liability for ' +
+          esc(EVENT.address) + '.</p>' +
+        '<img src="' + e.signature + '" alt="signature">' +
+        '<div class="sigl">Signature</div>' +
+      '</div>';
+    }).join("");
+    w.document.write(
+      '<!doctype html><html><head><meta charset="utf-8"><title>Signed Waivers — Open House</title>' +
+      '<style>body{font-family:Arial,Helvetica,sans-serif;color:#1c2530;margin:32px;}' +
+      'h1{font-size:20px;border-bottom:2px solid #14507a;padding-bottom:8px;}' +
+      '.rec{page-break-inside:avoid;border:1px solid #ccc;border-radius:10px;padding:16px;margin:16px 0;}' +
+      '.rec h2{margin:0 0 6px;font-size:17px;} .rec p{margin:4px 0;font-size:13px;}' +
+      '.rec img{height:90px;border-bottom:1px solid #333;margin-top:8px;display:block;}' +
+      '.sigl{font-size:11px;color:#666;margin-top:2px;}' +
+      '@media print{button{display:none;}}</style></head><body>' +
+      '<h1>' + esc(EVENT.title) + ' — Signed Waivers</h1>' +
+      '<p>' + esc(EVENT.address) + ' &middot; ' + list.length + ' visitor(s)</p>' +
+      '<button onclick="window.print()" style="padding:10px 18px;font-size:14px;margin-bottom:10px;cursor:pointer;">Print / Save as PDF</button>' +
+      body + '</body></html>');
+    w.document.close();
+  });
+
+  /* Clear all */
+  $("clearAll").addEventListener("click", function () {
+    var list = load();
+    if (!list.length) { alert("There's nothing to clear."); return; }
+    if (!confirm("Delete ALL " + list.length + " sign-ins? Export or back up first — this cannot be undone.")) return;
+    if (!confirm("Are you absolutely sure? This permanently erases every sign-in on this device.")) return;
+    localStorage.removeItem(STORE_KEY);
+    renderEntries();
+    alert("All sign-in data cleared.");
+  });
+
+  /* generic file download */
+  function downloadFile(filename, mime, content) {
+    var blob = new Blob([content], { type: mime + ";charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+  }
+})();
+</script>
+</body>
+</html>
