@@ -18,8 +18,9 @@ Sheet, and each signature image is saved to a Google Drive folder
 ("Open House Signatures").
 
 Source files live in this repo:
-- `apps-script/Code.gs` — the server (serves the page + records sign-ins)
-- `apps-script/Index.html` — the visitor sign-in page
+- `apps-script/Code.gs` — the entire app; paste this one file into Apps Script
+  (serves the bundled sign-in page AND records sign-ins)
+- `apps-script/Index.html` — source of the sign-in page (bundled into `Code.gs`)
 - `preview.html` — a no-save demo of the page (for showing the design only)
 
 ---
@@ -30,14 +31,13 @@ Source files live in this repo:
    aduwestcoast.com account). Go to **sheets.new** and create a blank Sheet
    named "Open House Sign-Ins."
 2. In that Sheet: **Extensions → Apps Script**.
-3. Delete the sample `Code.gs` content and paste in `apps-script/Code.gs`.
-4. **Files → + → HTML**, name it exactly **`Index`**, and paste in
-   `apps-script/Index.html`.
-5. **Save.**
-6. **Deploy → New deployment →** gear icon **→ Web app**.
-7. Set **Execute as: Me** and **Who has access: Anyone**, then **Deploy** and
+3. Delete the sample `Code.gs` content and paste in `apps-script/Code.gs`
+   (it already includes the sign-in page — no separate HTML file needed).
+4. **Save** (disk icon).
+5. **Deploy → New deployment →** gear icon **→ Web app**.
+6. Set **Execute as: Me** and **Who has access: Anyone**, then **Deploy** and
    **Authorize access** (approve your own script when prompted).
-8. Copy the **Web app URL** (ends in `/exec`). This is the live link to share.
+7. Copy the **Web app URL** (ends in `/exec`). This is the live link to share.
 
 **Live sign-in link:** `__PASTE_YOUR_/exec_URL_HERE__`
 
