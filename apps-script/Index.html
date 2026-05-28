@@ -25,7 +25,7 @@
   header.hero h1 { margin: 12px 0 4px; font-size: 26px; line-height: 1.2; }
   header.hero .addr { color: var(--muted); font-size: 15px; margin: 0; }
   header.hero .date { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
-  .brandlogo { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px; }
+  .brandlogo { display: block; width: min(280px, 78%); height: auto; margin: 0 auto 12px; }
   .brandlogo .word { font-size: 21px; font-weight: 800; letter-spacing: .5px; color: var(--brand); line-height: 1.05; text-align: left; }
   .brandlogo .word b { color: var(--safety-dark); }
   .brandlogo .word small { display: block; font-size: 10px; letter-spacing: 3px; color: var(--muted); font-weight: 700; margin-top: 3px; }
@@ -110,15 +110,16 @@
 
 <div id="app" class="wrap">
   <header class="hero">
-    <!-- Placeholder wordmark — swap this whole block for <img src="..."> when the real logo file is available -->
-    <div class="brandlogo" role="img" aria-label="ADU West Coast">
-      <svg width="46" height="46" viewBox="0 0 64 64" aria-hidden="true">
-        <path d="M32 6 L60 30 H4 Z" fill="#f5a623"/>
-        <rect x="12" y="30" width="40" height="28" rx="2" fill="#14507a"/>
-        <rect x="28" y="41" width="8" height="17" fill="#ffffff"/>
-      </svg>
-      <span class="word"><b>ADU</b> WEST COAST<small>OPEN HOUSE</small></span>
-    </div>
+    <!-- ADU West Coast logo (vector recreation; swap for the exact image file anytime) -->
+    <svg class="brandlogo" viewBox="0 0 380 150" role="img" aria-label="ADU West Coast">
+      <title>ADU West Coast</title>
+      <polygon points="60,16 92,50 28,50" fill="#E0242B"/>
+      <rect x="38" y="50" width="44" height="48" fill="#E0242B"/>
+      <rect x="52" y="68" width="16" height="30" fill="#ffffff"/>
+      <text x="104" y="92" font-family="'Arial Black','Arial',sans-serif" font-size="92" font-weight="900" fill="#2A8DCC" letter-spacing="-3">ADU</text>
+      <rect x="28" y="110" width="324" height="32" rx="2" fill="#E0242B"/>
+      <text x="190" y="133" text-anchor="middle" font-family="'Arial','Helvetica',sans-serif" font-size="19" font-weight="700" fill="#ffffff" letter-spacing="7">WEST COAST</text>
+    </svg>
     <h1>Welcome — Please Sign In</h1>
     <p class="addr">15623 Van Ness Ave, Gardena, CA 90249</p>
     <p class="date" id="todayLine"></p>
