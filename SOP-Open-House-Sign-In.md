@@ -11,10 +11,10 @@ e-signature) before entering. Use this at **every** open house.
 ## The live link (share this)
 
 **Sign-in URL:**
-`https://raw.githack.com/cameron3434/Claude-Code-/2271d02c9edadb6a069bef046187d56dba542f5a/signin-live.html`
+`https://raw.githack.com/cameron3434/Claude-Code-/v1/signin-live.html`
 
 **Printable QR poster for the door:**
-`https://raw.githack.com/cameron3434/Claude-Code-/2271d02c9edadb6a069bef046187d56dba542f5a/poster.html`
+`https://raw.githack.com/cameron3434/Claude-Code-/v1/poster.html`
 (Open it in a browser, click **Print this poster**, choose Letter size.)
 
 ---
@@ -27,7 +27,8 @@ Visitors open the link (or scan the QR poster) on their own phone. They:
 3. **Type their full legal name** as their electronic signature.
 4. Tap **Sign In & Enter Site**.
 
-Each submission is **emailed to cameron@aduwestcoast.com** via FormSubmit
+Each submission is **emailed to cameron@aduwestcoast.com**, with
+**stephanie@aduwestcoast.com** and **mario@resi-co.com** CC'd, via FormSubmit
 (a free form-relay service). Filter Gmail by the subject prefix
 "Open house sign-in" to round them up after the event.
 
