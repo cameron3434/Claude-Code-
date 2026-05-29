@@ -11,10 +11,10 @@ e-signature) before entering. Use this at **every** open house.
 ## The live link (share this)
 
 **Sign-in URL:**
-`https://rawcdn.githack.com/cameron3434/Claude-Code-/3ee29b46c1b45d50391b5aba7b384124852ce603/signin-live.html`
+`https://cdn.jsdelivr.net/gh/cameron3434/Claude-Code-@8d70ffb6a0c6bda634d62a7c2c29a8536d5d3236/signin-live.html`
 
 **Printable QR poster for the door:**
-`https://rawcdn.githack.com/cameron3434/Claude-Code-/3ee29b46c1b45d50391b5aba7b384124852ce603/poster.html`
+`https://cdn.jsdelivr.net/gh/cameron3434/Claude-Code-@8d70ffb6a0c6bda634d62a7c2c29a8536d5d3236/poster.html`
 (Open it in a browser, click **Print this poster**, choose Letter size.)
 
 ---
