@@ -67,7 +67,7 @@
   var here = window.location.href.split('?')[0].split('#')[0];
   var SIGNIN_URL = /poster\.html$/.test(here)
     ? here.replace(/poster\.html$/, 'signin-live.html')
-    : "https://cdn.statically.io/gh/cameron3434/Claude-Code-/bab0080989d06b268c9f353c564e67192dc74fd6/signin-live.html";
+    : "https://cameron3434.github.io/Claude-Code-/signin-live.html";
   var fb = document.getElementById('fallbackUrl');
   if (fb) fb.textContent = SIGNIN_URL;
   function render() {
