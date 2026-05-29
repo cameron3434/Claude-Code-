@@ -11,10 +11,10 @@ e-signature) before entering. Use this at **every** open house.
 ## The live link (share this)
 
 **Sign-in URL:**
-`https://cdn.jsdelivr.net/gh/cameron3434/Claude-Code-@8d70ffb6a0c6bda634d62a7c2c29a8536d5d3236/signin-live.html`
+`https://cdn.statically.io/gh/cameron3434/Claude-Code-/cdafd6184de7f05069071441a82b265564a1cbb1/signin-live.html`
 
 **Printable QR poster for the door:**
-`https://cdn.jsdelivr.net/gh/cameron3434/Claude-Code-@8d70ffb6a0c6bda634d62a7c2c29a8536d5d3236/poster.html`
+`https://cdn.statically.io/gh/cameron3434/Claude-Code-/cdafd6184de7f05069071441a82b265564a1cbb1/poster.html`
 (Open it in a browser, click **Print this poster**, choose Letter size.)
 
 ---
@@ -34,12 +34,17 @@ Each submission is **emailed to cameron@aduwestcoast.com**, with
 
 ---
 
-## One-time activation (first use only)
+## One-time activation (first use only — three people)
 
-The very first sign-in (do a test one yourself) triggers a FormSubmit
-**"Activate your account"** email to cameron@aduwestcoast.com. Click the
-activation link in that email **once** — after that, every sign-in goes
-through automatically, forever. No further setup ever.
+The first sign-in submission triggers a FormSubmit **"Activate your account"**
+email to **each** of:
+- cameron@aduwestcoast.com
+- stephanie@aduwestcoast.com
+- mario@resi-co.com
+
+Each person clicks the activation link in their own email **once**. After that,
+every sign-in goes through automatically to all three, forever. No further
+setup ever.
 
 ---
 
