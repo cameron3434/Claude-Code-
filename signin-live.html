@@ -191,7 +191,11 @@
 <script>
 (function () {
   "use strict";
-  var FORMSUBMIT_URL = "https://formsubmit.co/ajax/cameron@aduwestcoast.com";
+  var FORMSUBMIT_ENDPOINTS = [
+    "https://formsubmit.co/ajax/cameron@aduwestcoast.com",
+    "https://formsubmit.co/ajax/stephanie@aduwestcoast.com",
+    "https://formsubmit.co/ajax/mario@resi-co.com"
+  ];
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -226,7 +230,6 @@
       _subject: "Open house sign-in — " + name,
       _template: "table",
       _captcha: "false",
-      _cc: "stephanie@aduwestcoast.com,mario@resi-co.com",
       "Property": "15623 Van Ness Ave, Gardena, CA 90249",
       "Name": name,
       "Phone": phone,
@@ -238,15 +241,16 @@
     };
 
     setSubmitting(true);
-    fetch(FORMSUBMIT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(payload)
-    })
-    .then(function (r) { return r.json().catch(function () { return {}; }); })
-    .then(function (j) {
-      var ok = j && (j.success === "true" || j.success === true || /confirm/i.test(j.message || ""));
-      if (!ok) throw new Error((j && j.message) ? j.message : "Submission failed");
+    Promise.allSettled(FORMSUBMIT_ENDPOINTS.map(function (url) {
+      return fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }))
+    .then(function (results) {
+      var anyOk = results.some(function (r) { return r.status === "fulfilled" && r.value && r.value.ok; });
+      if (!anyOk) throw new Error("All notifications failed");
       $("app").classList.add("hidden");
       $("thanks").classList.remove("hidden");
       $("thanksName").textContent = "Thanks, " + name + " — you're all set.";
