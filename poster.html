@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scan to Sign In · ADU West Coast Open House</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; color: #1c2530; margin: 0; padding: 30px; text-align: center; background: #fff; }
+  .poster { max-width: 760px; margin: 0 auto; }
+  .stripe { height: 14px; background: repeating-linear-gradient(45deg, #f5a623 0 22px, #1c2530 22px 44px); margin-bottom: 24px; border-radius: 4px; }
+  .logo { width: 360px; max-width: 70%; height: auto; margin: 0 auto 14px; display: block; }
+  h1 { font-size: 52px; margin: 0 0 6px; letter-spacing: -1px; color: #14507a; line-height: 1.05; }
+  .sub { font-size: 22px; color: #5b6b7b; margin: 0 0 6px; font-weight: 600; }
+  #qr { width: 460px; max-width: 80%; aspect-ratio: 1/1; margin: 18px auto 8px; }
+  #qr svg { width: 100%; height: 100%; display: block; }
+  .instr { font-size: 18px; color: #1c2530; margin: 14px 0 14px; font-weight: 700; }
+  .num { display: inline-block; width: 26px; height: 26px; border-radius: 50%; background: #14507a; color: #fff; font-weight: 800; line-height: 26px; margin-right: 6px; font-size: 15px; }
+  .addr { font-size: 22px; font-weight: 800; margin: 16px 0 2px; color: #1c2530; }
+  .city { font-size: 17px; color: #5b6b7b; margin: 0 0 6px; }
+  .legal { font-size: 12px; color: #5b6b7b; font-style: italic; margin-top: 10px; }
+  .url { font-size: 11px; color: #8a96a3; word-break: break-all; margin-top: 14px; }
+  .print { background: #14507a; color: #fff; border: none; font-size: 16px; font-weight: 700; padding: 12px 24px; border-radius: 10px; cursor: pointer; margin-top: 18px; }
+  @media print {
+    .print { display: none; }
+    body { padding: 10px; }
+    #qr { width: 5in; max-width: 5in; }
+    @page { size: letter portrait; margin: 0.4in; }
+  }
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="stripe"></div>
+
+  <svg class="logo" viewBox="0 0 380 150" aria-label="ADU West Coast">
+    <polygon points="60,16 92,50 28,50" fill="#E0242B"/>
+    <rect x="38" y="50" width="44" height="48" fill="#E0242B"/>
+    <rect x="52" y="68" width="16" height="30" fill="#ffffff"/>
+    <text x="104" y="92" font-family="'Arial Black','Arial',sans-serif" font-size="92" font-weight="900" fill="#2A8DCC" letter-spacing="-3">ADU</text>
+    <rect x="28" y="110" width="324" height="32" rx="2" fill="#E0242B"/>
+    <text x="190" y="133" text-anchor="middle" font-family="'Arial','Helvetica',sans-serif" font-size="19" font-weight="700" fill="#ffffff" letter-spacing="7">WEST COAST</text>
+  </svg>
+
+  <h1>Please Sign In</h1>
+  <p class="sub">Scan with your phone camera to enter</p>
+
+  <div id="qr">Loading QR…</div>
+
+  <p class="instr">
+    <span class="num">1</span> Open camera &nbsp;
+    <span class="num">2</span> Point at QR &nbsp;
+    <span class="num">3</span> Tap the link
+  </p>
+
+  <p class="addr">15623 Van Ness Ave</p>
+  <p class="city">Gardena, CA 90249</p>
+  <p class="legal">Construction site — please sign in before entering.</p>
+
+  <p class="url">If the QR won't scan, visit: <br>https://raw.githack.com/cameron3434/Claude-Code-/2271d02c9edadb6a069bef046187d56dba542f5a/signin-live.html</p>
+
+  <button class="print" onclick="window.print()">Print this poster</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>
+(function () {
+  var SIGNIN_URL = "https://raw.githack.com/cameron3434/Claude-Code-/2271d02c9edadb6a069bef046187d56dba542f5a/signin-live.html";
+  function render() {
+    try {
+      var qr = qrcode(0, 'M');
+      qr.addData(SIGNIN_URL);
+      qr.make();
+      document.getElementById('qr').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+    } catch (e) {
+      document.getElementById('qr').textContent = 'QR error: ' + e;
+    }
+  }
+  if (window.qrcode) render(); else window.addEventListener('load', render);
+})();
+</script>
+</body>
+</html>

@@ -1,77 +1,76 @@
 # SOP: Open House Electronic Sign-In
 
 **Purpose:** Capture every open house visitor's name, phone, and email, and have
-them acknowledge a construction-site liability waiver (with signature) before
-entering. Use this at **every** open house.
+them acknowledge a construction-site liability waiver (with a typed-name
+e-signature) before entering. Use this at **every** open house.
 
 **Owner:** ADU West Coast
-**Tools:** Google Sheet + Google Apps Script web app (free, data stays in our Google account)
 
 ---
 
-## What it is
+## The live link (share this)
 
-A single web link that visitors open on their own phones. They enter their
-contact info, read and agree to the construction-site waiver, sign with a
-finger, and tap **Sign In & Enter Site**. Every submission lands in a Google
-Sheet, and each signature image is saved to a Google Drive folder
-("Open House Signatures").
+**Sign-in URL:**
+`https://raw.githack.com/cameron3434/Claude-Code-/2271d02c9edadb6a069bef046187d56dba542f5a/signin-live.html`
 
-Source files live in this repo:
-- `apps-script/Code.gs` — the entire app; paste this one file into Apps Script
-  (serves the bundled sign-in page AND records sign-ins)
-- `apps-script/Index.html` — source of the sign-in page (bundled into `Code.gs`)
-- `preview.html` — a no-save demo of the page (for showing the design only)
+**Printable QR poster for the door:**
+`https://raw.githack.com/cameron3434/Claude-Code-/2271d02c9edadb6a069bef046187d56dba542f5a/poster.html`
+(Open it in a browser, click **Print this poster**, choose Letter size.)
 
 ---
 
-## One-time setup (per Google account)
+## How it works
 
-1. Sign into the Google account that should own the data (e.g. the
-   aduwestcoast.com account). Go to **sheets.new** and create a blank Sheet
-   named "Open House Sign-Ins."
-2. In that Sheet: **Extensions → Apps Script**.
-3. Delete the sample `Code.gs` content and paste in `apps-script/Code.gs`
-   (it already includes the sign-in page — no separate HTML file needed).
-4. **Save** (disk icon).
-5. **Deploy → New deployment →** gear icon **→ Web app**.
-6. Set **Execute as: Me** and **Who has access: Anyone**, then **Deploy** and
-   **Authorize access** (approve your own script when prompted).
-7. Copy the **Web app URL** (ends in `/exec`). This is the live link to share.
+Visitors open the link (or scan the QR poster) on their own phone. They:
+1. Enter their **name, phone, and email**.
+2. Read the **construction-site liability waiver** and tick "I have read and agree."
+3. **Type their full legal name** as their electronic signature.
+4. Tap **Sign In & Enter Site**.
 
-**Live sign-in link:** `__PASTE_YOUR_/exec_URL_HERE__`
+Each submission is **emailed to cameron@aduwestcoast.com** via FormSubmit
+(a free form-relay service). Filter Gmail by the subject prefix
+"Open house sign-in" to round them up after the event.
 
-> If you ever edit `Code.gs` or `Index.html`, redeploy:
-> **Deploy → Manage deployments → (edit / pencil) → Version: New version → Deploy.**
+---
+
+## One-time activation (first use only)
+
+The very first sign-in (do a test one yourself) triggers a FormSubmit
+**"Activate your account"** email to cameron@aduwestcoast.com. Click the
+activation link in that email **once** — after that, every sign-in goes
+through automatically, forever. No further setup ever.
 
 ---
 
 ## Before each open house
 
-- [ ] Confirm the live link still loads (open it on a phone).
-- [ ] Print the "Scan to Sign In" QR poster and post it at the entrance.
-- [ ] Have a backup device (phone/tablet) at the door in case a visitor's phone
+- [ ] Open the live link on a phone to confirm it loads.
+- [ ] Print the QR poster (`poster.html`) and post it at the entrance.
+- [ ] Have a backup device (phone/tablet) at the door for guests whose phone
       can't scan or load the page.
 
 ## During each open house
 
 - [ ] Every visitor signs in **before** entering the construction area.
-- [ ] Visitors must check the waiver agreement box and add a signature.
-- [ ] Offer help to anyone who has trouble (they can sign in on the door device).
+- [ ] Visitors must check the waiver agreement and type their full name to sign.
+- [ ] Help anyone who has trouble — they can sign in on the door device.
 
 ## After each open house
 
-- [ ] Open the "Open House Sign-Ins" Sheet → **File → Download → CSV** for the
-      contact list.
-- [ ] Signatures are in Google Drive → "Open House Signatures" folder (each row
-      in the Sheet links to its signature image).
-- [ ] Follow up with visitors who checked "I'd like to receive information."
+- [ ] In Gmail, search "Open house sign-in" to gather every submission.
+- [ ] Follow up with anyone who checked "I'd like to receive information."
 
 ---
 
 ## Notes
 
 - Visitors need internet (Wi-Fi or cell) to load and submit the page.
-- "Who has access: Anyone" only lets people see the form — never the Sheet.
-- The waiver is a general acknowledgment, **not legal advice**. Have a licensed
-  attorney review it if you want a binding, project-specific waiver.
+- The waiver is a general acknowledgment, **not legal advice** — have a licensed
+  attorney review it for a binding, project-specific waiver.
+- The page exposes `cameron@aduwestcoast.com` in its source so FormSubmit can
+  route mail to you. If spam becomes an issue, the link can be rotated to a
+  FormSubmit hashed alias.
+- Source files live in this repo:
+  - `signin-live.html` — the visitor sign-in page (this is what visitors open)
+  - `poster.html` — the printable QR poster
+  - `preview.html` — early no-save demo of the design (kept for reference)
