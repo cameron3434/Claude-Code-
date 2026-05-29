@@ -56,7 +56,7 @@
   <p class="city">Gardena, CA 90249</p>
   <p class="legal">Construction site — please sign in before entering.</p>
 
-  <p class="url">If the QR won't scan, visit: <br>https://raw.githack.com/cameron3434/Claude-Code-/v1/signin-live.html</p>
+  <p class="url" id="urlLine">If the QR won't scan, visit: <br><span id="fallbackUrl">loading…</span></p>
 
   <button class="print" onclick="window.print()">Print this poster</button>
 </div>
@@ -64,7 +64,12 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script>
 (function () {
-  var SIGNIN_URL = "https://raw.githack.com/cameron3434/Claude-Code-/v1/signin-live.html";
+  var here = window.location.href.split('?')[0].split('#')[0];
+  var SIGNIN_URL = /poster\.html$/.test(here)
+    ? here.replace(/poster\.html$/, 'signin-live.html')
+    : "https://raw.githack.com/cameron3434/Claude-Code-/bab0080989d06b268c9f353c564e67192dc74fd6/signin-live.html";
+  var fb = document.getElementById('fallbackUrl');
+  if (fb) fb.textContent = SIGNIN_URL;
   function render() {
     try {
       var qr = qrcode(0, 'M');
