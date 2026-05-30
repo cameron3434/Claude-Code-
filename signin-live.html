@@ -226,6 +226,9 @@
     if (!sigName) return showErr("Please type your full legal name as your signature.");
     if ($("company").value) return; // honeypot tripped: silent drop
 
+    var waiverEl = document.querySelector(".waiver");
+    var waiverText = waiverEl ? (waiverEl.innerText || waiverEl.textContent || "").trim() : "";
+
     var payload = {
       _subject: "Open house sign-in — " + name,
       _template: "table",
@@ -237,7 +240,8 @@
       "Wants Info": $("consent").checked ? "Yes" : "No",
       "Waiver Agreed": "Yes",
       "Signature (typed)": sigName,
-      "Signed At": new Date().toLocaleString()
+      "Signed At": new Date().toLocaleString(),
+      "Waiver Text Acknowledged": waiverText
     };
 
     setSubmitting(true);
