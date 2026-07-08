@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tweet Reply Sentiment &middot; Ratio Checker</title>
+<style>
+  :root {
+    --ink: #1c2530;
+    --muted: #5b6b7b;
+    --line: #e1e6ec;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --brand: #14507a;
+    --brand-dark: #0e3a59;
+    --radius: 16px;
+    /* Sentiment viz — validated diverging pair (CVD-safe), gray neutral midpoint */
+    --neg: #d03b3b;
+    --pos: #2a78d6;
+    --neu: #aeb7c2;
+    --neg-soft: #fbeceb;
+    --pos-soft: #e8f1fb;
+    --neu-soft: #f0f2f5;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .stripe {
+    height: 10px;
+    background: repeating-linear-gradient(45deg, var(--pos) 0 22px, var(--ink) 22px 44px);
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 18px 16px 64px; }
+  header.hero { text-align: center; padding: 22px 12px 6px; }
+  header.hero .badge {
+    display: inline-block; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--brand); font-weight: 800; background: #e8f1f8; padding: 6px 12px; border-radius: 999px;
+  }
+  header.hero h1 { margin: 12px 0 4px; font-size: 26px; line-height: 1.2; }
+  header.hero .sub { color: var(--muted); font-size: 15px; margin: 0; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; margin-top: 18px; box-shadow: 0 1px 2px rgba(16,32,48,.04);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 19px; }
+  .card .hint { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+
+  label.field { display: block; margin-bottom: 16px; }
+  label.field .lab { display: block; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  label.field .note { display: block; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+  input[type="text"], input[type="password"], textarea {
+    width: 100%; font-size: 16px; padding: 13px 14px;
+    border: 1.5px solid var(--line); border-radius: 12px;
+    background: #fbfcfe; color: var(--ink); font-family: inherit;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--brand); }
+  textarea { min-height: 170px; resize: vertical; line-height: 1.45; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .tab {
+    flex: 1; text-align: center; padding: 11px 10px; font-size: 14.5px; font-weight: 700;
+    border: 1.5px solid var(--line); border-radius: 12px; background: #fbfcfe;
+    color: var(--muted); cursor: pointer; user-select: none;
+  }
+  .tab.active { background: #e8f1f8; border-color: var(--brand); color: var(--brand); }
+
+  .checkrow { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; font-size: 14px; color: var(--muted); }
+  .checkrow input { margin-top: 3px; width: 18px; height: 18px; }
+
+  button.primary {
+    width: 100%; padding: 15px; font-size: 17px; font-weight: 800;
+    background: var(--brand); color: #fff; border: none; border-radius: 12px; cursor: pointer;
+  }
+  button.primary:active { background: var(--brand-dark); }
+  button.primary:disabled { opacity: .55; cursor: default; }
+
+  .status { margin-top: 12px; font-size: 14px; color: var(--muted); min-height: 20px; }
+  .status.err { color: var(--neg); font-weight: 600; }
+
+  /* ---- Results ---- */
+  #results { display: none; }
+  .hero-num { text-align: center; padding: 6px 0 2px; }
+  .hero-num .big { font-size: 44px; font-weight: 800; line-height: 1.1; }
+  .hero-num .cap { color: var(--muted); font-size: 14px; margin-top: 2px; }
+
+  .ratio-line { text-align: center; font-size: 15px; color: var(--muted); margin: 10px 0 18px; }
+  .ratio-line b { color: var(--ink); }
+
+  .bar {
+    display: flex; height: 34px; border-radius: 8px; overflow: hidden;
+    background: var(--line); gap: 2px; /* 2px surface gap between fills */
+  }
+  .bar .seg { position: relative; min-width: 0; transition: width .4s ease; }
+  .bar .seg.neg { background: var(--neg); border-radius: 6px 0 0 6px; }
+  .bar .seg.neu { background: var(--neu); }
+  .bar .seg.pos { background: var(--pos); border-radius: 0 6px 6px 0; }
+  .bar .seg:first-child { border-radius: 6px 0 0 6px; }
+  .bar .seg:last-child { border-radius: 0 6px 6px 0; }
+  .bar .seg:only-child { border-radius: 6px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 22px; justify-content: center; margin-top: 14px; font-size: 14px; }
+  .legend .item { display: flex; align-items: center; gap: 7px; }
+  .legend .dot { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+  .legend .dot.neg { background: var(--neg); } .legend .dot.neu { background: var(--neu); } .legend .dot.pos { background: var(--pos); }
+  .legend b { font-variant-numeric: tabular-nums; }
+
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+  .tile { border: 1px solid var(--line); border-radius: 12px; padding: 12px 8px; text-align: center; }
+  .tile .v { font-size: 24px; font-weight: 800; }
+  .tile .k { font-size: 12.5px; color: var(--muted); }
+  .tile.neg .v { color: var(--neg); } .tile.pos .v { color: var(--pos); } .tile.neu .v { color: var(--muted); }
+
+  .tooltip {
+    position: fixed; z-index: 50; pointer-events: none; display: none;
+    background: var(--ink); color: #fff; font-size: 13px; padding: 7px 10px;
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(16,32,48,.25); white-space: nowrap;
+  }
+
+  .chips { display: flex; gap: 8px; margin: 22px 0 12px; flex-wrap: wrap; }
+  .chip {
+    padding: 7px 14px; font-size: 13.5px; font-weight: 700; border-radius: 999px;
+    border: 1.5px solid var(--line); background: #fbfcfe; color: var(--muted); cursor: pointer;
+  }
+  .chip.active { border-color: var(--brand); background: #e8f1f8; color: var(--brand); }
+
+  .reply { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; display: flex; gap: 12px; }
+  .reply .edge { width: 4px; border-radius: 4px; flex: none; }
+  .reply.neg .edge { background: var(--neg); } .reply.neu .edge { background: var(--neu); } .reply.pos .edge { background: var(--pos); }
+  .reply .txt { font-size: 14.5px; flex: 1; min-width: 0; overflow-wrap: break-word; }
+  .reply .tag { flex: none; font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; height: fit-content; }
+  .reply.neg .tag { background: var(--neg-soft); color: var(--neg); }
+  .reply.neu .tag { background: var(--neu-soft); color: var(--muted); }
+  .reply.pos .tag { background: var(--pos-soft); color: #1c5cab; }
+
+  .fineprint { font-size: 12.5px; color: var(--muted); margin-top: 16px; }
+  details.help { margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+  details.help summary { cursor: pointer; font-weight: 700; color: var(--brand); }
+  details.help ol { padding-left: 20px; }
+  .pane { display: none; } .pane.active { display: block; }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="badge">Reply Ratio Checker</span>
+    <h1>Tweet Sentiment Analyzer</h1>
+    <p class="sub">Link a tweet, pull in the replies, and see the negative-vs-positive ratio.</p>
+  </header>
+
+  <div class="card">
+    <h2>1 &middot; The tweet</h2>
+    <p class="hint">Paste the link to the tweet you want to check.</p>
+    <label class="field">
+      <span class="lab">Tweet / X post URL</span>
+      <input type="text" id="tweetUrl" inputmode="url" autocomplete="off"
+             placeholder="https://x.com/someone/status/1234567890" />
+    </label>
+  </div>
+
+  <div class="card">
+    <h2>2 &middot; The replies</h2>
+    <p class="hint">X no longer lets websites read replies for free, so pick how to get them in:</p>
+
+    <div class="tabs" role="tablist">
+      <div class="tab active" id="tabPaste" role="tab">Paste replies (works for everyone)</div>
+      <div class="tab" id="tabApi" role="tab">Fetch with my X API key</div>
+    </div>
+
+    <div class="pane active" id="panePaste">
+      <details class="help">
+        <summary>How to grab the replies in ~10 seconds</summary>
+        <ol>
+          <li>Open the tweet on x.com and scroll so the replies you care about have loaded.</li>
+          <li>Select the replies with your mouse (or Ctrl/Cmd-A) and copy.</li>
+          <li>Paste below. Usernames, timestamps, and like-counts are cleaned out automatically.</li>
+        </ol>
+      </details>
+      <label class="field" style="margin-top:14px;">
+        <span class="lab">Replies (one per line, or a raw copy-paste from the page)</span>
+        <textarea id="pasteBox" placeholder="This is the best thing I've seen all week&#10;lol what a terrible take&#10;mid&#10;absolutely based, great thread"></textarea>
+      </label>
+      <div class="checkrow">
+        <input type="checkbox" id="cleanup" checked />
+        <span>Clean up Twitter clutter (drop @handles, timestamps, &ldquo;Replying to&rdquo;, view counts, etc.)</span>
+      </div>
+    </div>
+
+    <div class="pane" id="paneApi">
+      <label class="field">
+        <span class="lab">X API v2 Bearer token</span>
+        <input type="password" id="bearer" autocomplete="off" placeholder="AAAAAAAAAA..." />
+        <span class="note">Needs a paid X API plan with search access. The token stays in your browser &mdash; requests go straight from this page. Recent search only covers replies from the last 7 days.</span>
+      </label>
+      <label class="field">
+        <span class="lab">CORS proxy (usually leave as-is)</span>
+        <input type="text" id="proxy" value="https://corsproxy.io/?url=" />
+        <span class="note">X&rsquo;s API blocks direct browser calls, so requests are relayed through this proxy. The page tries a direct call first and only falls back to the proxy.</span>
+      </label>
+    </div>
+
+    <button class="primary" id="goBtn">Analyze replies</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="card" id="results">
+    <h2>Results</h2>
+    <p class="hint" id="resultCap"></p>
+
+    <div class="hero-num">
+      <div class="big" id="heroPct">&ndash;</div>
+      <div class="cap">of replies are negative</div>
+    </div>
+    <div class="ratio-line" id="ratioLine"></div>
+
+    <div class="bar" id="bar" aria-label="Sentiment breakdown bar"></div>
+    <div class="legend" id="legend"></div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="chips" id="chips">
+      <span class="chip active" data-f="all">All</span>
+      <span class="chip" data-f="neg">Negative</span>
+      <span class="chip" data-f="neu">Neutral</span>
+      <span class="chip" data-f="pos">Positive</span>
+    </div>
+    <div id="replyList"></div>
+
+    <p class="fineprint">Scoring is a word/emoji lexicon that runs entirely in your browser &mdash; it catches tone well in bulk but can miss sarcasm on individual replies. Treat the ratio as a strong signal, not a verdict.</p>
+  </div>
+
+</div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============ Sentiment lexicon (AFINN-style, -5..+5) ============ */
+  var LEX = {
+    // strongly negative
+    "awful":-3,"terrible":-3,"horrible":-3,"disgusting":-3,"pathetic":-3,"garbage":-3,
+    "trash":-3,"worst":-3,"hate":-3,"hated":-3,"hates":-3,"scam":-3,"fraud":-3,"liar":-3,
+    "lies":-2,"lying":-2,"lie":-2,"evil":-3,"vile":-3,"disgrace":-3,"disgraceful":-3,
+    "embarrassing":-2,"embarrassment":-2,"shameful":-3,"shame":-2,"disaster":-3,
+    "dumpster":-2,"nightmare":-3,"atrocious":-4,"abysmal":-4,"appalling":-4,"despicable":-4,
+    "idiot":-3,"idiotic":-3,"idiots":-3,"stupid":-2,"stupidity":-2,"dumb":-2,"dumbest":-3,
+    "moron":-3,"moronic":-3,"clown":-2,"clowns":-2,"fool":-2,"foolish":-2,"loser":-3,
+    "losers":-3,"crap":-2,"sucks":-2,"suck":-2,"sucked":-2,"bullshit":-3,"bs":-2,
+    "wtf":-2,"smh":-2,"cringe":-2,"cringey":-2,"yikes":-2,"gross":-2,"ugh":-2,"eww":-2,
+    "boring":-2,"bored":-1,"lame":-2,"weak":-1,"mid":-2,"meh":-1,"overrated":-2,
+    "disappointed":-2,"disappointing":-2,"disappointment":-2,"letdown":-2,"fail":-2,
+    "failed":-2,"failure":-2,"fails":-2,"flop":-2,"broken":-1,"useless":-2,"worthless":-3,
+    "pointless":-2,"nonsense":-2,"ridiculous":-2,"absurd":-2,"insane":-1,"crazy":-1,
+    "wrong":-2,"bad":-2,"badly":-2,"worse":-2,"poor":-2,"poorly":-2,"cheap":-1,
+    "angry":-2,"anger":-2,"mad":-2,"furious":-3,"outraged":-3,"outrage":-2,"rage":-2,
+    "annoying":-2,"annoyed":-2,"irritating":-2,"frustrating":-2,"frustrated":-2,
+    "sad":-2,"sadly":-2,"depressing":-2,"tragic":-2,"tragedy":-2,"awkward":-1,
+    "toxic":-2,"creepy":-2,"weird":-1,"sketchy":-2,"shady":-2,"corrupt":-3,"corruption":-3,
+    "greedy":-2,"greed":-2,"selfish":-2,"arrogant":-2,"ignorant":-2,"ignorance":-2,
+    "racist":-3,"sexist":-3,"bigot":-3,"nazi":-3,"fascist":-3,"traitor":-3,"treason":-3,
+    "criminal":-2,"crime":-1,"illegal":-1,"unfair":-2,"injustice":-2,"disgusted":-3,
+    "hideous":-3,"ugly":-2,"nasty":-2,"filthy":-2,"rotten":-2,"foul":-2,"awfully":-2,
+    "hell":-1,"damn":-1,"dammit":-2,"pissed":-3,"fuck":-2,"fucking":-1,"fucked":-3,
+    "shit":-2,"shitty":-3,"ass":-1,"asshole":-3,"jerk":-2,"douche":-3,"dick":-2,
+    "bitch":-2,"bastard":-3,"screwed":-2,"ruined":-3,"ruin":-2,"destroy":-2,"destroyed":-2,
+    "kill":-2,"killed":-2,"dying":-1,"dead":-1,"death":-1,"toast":-1,"doomed":-2,
+    "wrongly":-2,"mistake":-2,"mistakes":-2,"error":-1,"errors":-1,"bug":-1,"bugs":-1,
+    "problem":-1,"problems":-1,"issue":-1,"issues":-1,"complaint":-1,"complain":-1,
+    "whining":-2,"whine":-2,"crying":-1,"cry":-1,"cried":-1,"tears":-1,"cope":-2,
+    "copium":-2,"seethe":-2,"seething":-2,"malding":-2,"triggered":-1,"salty":-1,
+    "bot":-1,"bots":-1,"shill":-2,"shills":-2,"grifter":-3,"grift":-3,"grifting":-3,
+    "propaganda":-2,"fake":-2,"phony":-2,"hoax":-2,"clickbait":-2,"spam":-2,
+    "delusional":-2,"delusion":-2,"denial":-1,"clueless":-2,"braindead":-3,"brainless":-3,
+    "unhinged":-2,"deranged":-3,"psycho":-2,"sick":-1,"sickening":-3,"disturbing":-2,
+    "horrific":-3,"horrifying":-3,"terrifying":-2,"scary":-1,"afraid":-1,"fear":-1,
+    "worried":-1,"worry":-1,"concerning":-1,"concerned":-1,"alarming":-2,"panic":-2,
+    "chaos":-2,"mess":-2,"messy":-1,"sloppy":-2,"lazy":-2,"incompetent":-3,
+    "incompetence":-3,"amateur":-1,"amateurish":-2,"unprofessional":-2,"rude":-2,
+    "disrespectful":-2,"disrespect":-2,"insult":-2,"insulting":-2,"offensive":-2,
+    "hypocrite":-3,"hypocrisy":-3,"hypocritical":-3,"dishonest":-2,"deceptive":-2,
+    "misleading":-2,"manipulative":-2,"manipulation":-2,"exploit":-2,"exploiting":-2,
+    "betrayed":-3,"betrayal":-3,"abandoned":-2,"neglected":-2,"ignored":-1,
+    "regret":-2,"regrets":-2,"sorry":-1,"apologize":-1,"blame":-2,"blamed":-2,
+    "guilty":-2,"guilt":-2,"ashamed":-2,"humiliating":-3,"humiliation":-3,
+    "cancel":-1,"cancelled":-1,"banned":-1,"blocked":-1,"reported":-1,"ratio":-2,
+    "ratioed":-3,"flopped":-2,"cooked":-2,"washed":-2,"fell":-1,"falling":-1,
+    "crash":-2,"crashed":-2,"crashing":-2,"collapse":-2,"collapsing":-2,"tanked":-2,
+    "tanking":-2,"bleeding":-2,"losing":-2,"lost":-1,"lose":-1,"decline":-1,
+    "declining":-1,"downhill":-2,"worthless":-3,"bankrupt":-2,"broke":-1,
+    // strongly positive
+    "amazing":3,"awesome":3,"excellent":3,"fantastic":3,"wonderful":3,"brilliant":3,
+    "incredible":3,"outstanding":3,"superb":3,"perfect":3,"perfection":3,"flawless":3,
+    "phenomenal":4,"magnificent":4,"masterpiece":4,"masterclass":3,"legendary":3,
+    "best":3,"greatest":3,"great":2,"good":2,"nice":2,"cool":1,"solid":1,"decent":1,
+    "love":3,"loved":3,"loves":3,"loving":2,"adore":3,"beautiful":3,"gorgeous":3,
+    "stunning":3,"lovely":3,"delightful":3,"charming":2,"elegant":2,"impressive":3,
+    "impressed":3,"remarkable":2,"exceptional":3,"extraordinary":3,"spectacular":3,
+    "epic":2,"insanely":1,"win":2,"winning":2,"winner":2,"won":2,"victory":2,
+    "success":2,"successful":2,"succeed":2,"thrive":2,"thriving":2,"flourish":2,
+    "happy":2,"happiness":2,"joy":2,"joyful":3,"glad":2,"delighted":3,"thrilled":3,
+    "excited":2,"exciting":2,"stoked":2,"pumped":2,"hyped":2,"hype":1,"psyched":2,
+    "grateful":2,"gratitude":2,"thankful":2,"thanks":1,"thank":1,"appreciate":2,
+    "appreciated":2,"blessed":2,"blessing":2,"proud":2,"pride":1,"honored":2,
+    "inspiring":2,"inspired":2,"inspiration":2,"motivating":2,"motivated":2,
+    "hope":1,"hopeful":2,"optimistic":2,"promising":2,"bright":1,"positive":2,
+    "helpful":2,"useful":2,"valuable":2,"insightful":2,"informative":2,"smart":2,
+    "clever":2,"genius":3,"brilliant":3,"wise":2,"wisdom":2,"talented":2,"talent":2,
+    "skilled":2,"gifted":2,"creative":2,"innovative":2,"groundbreaking":3,
+    "revolutionary":2,"gamechanger":3,"underrated":1,"refreshing":2,"authentic":2,
+    "genuine":2,"honest":2,"honesty":2,"integrity":2,"respect":2,"respected":2,
+    "admire":3,"admirable":3,"hero":2,"heroic":3,"champion":2,"champ":2,"king":2,
+    "queen":2,"goat":3,"goated":3,"fire":3,"lit":2,"dope":2,"sick":1,"slaps":2,
+    "banger":3,"bangers":3,"based":2,"chad":2,"legend":3,"iconic":2,"vibes":1,
+    "beast":2,"beastmode":2,"crushing":1,"crushed":1,"nailed":2,"killed":1,
+    "slay":2,"slayed":2,"queen":2,"stan":1,"fave":2,"favorite":2,"favourite":2,
+    "gem":2,"treasure":2,"precious":2,"sweet":2,"kind":2,"kindness":2,"generous":2,
+    "wholesome":3,"heartwarming":3,"touching":2,"moving":1,"powerful":2,"strong":1,
+    "brave":2,"courage":2,"courageous":3,"bold":1,"fearless":2,"resilient":2,
+    "fun":2,"funny":2,"hilarious":3,"lol":1,"lmao":1,"lmfao":1,"rofl":2,"haha":1,
+    "hahaha":2,"joke":0,"comedy":1,"gold":2,"classic":1,"agree":1,"agreed":1,
+    "true":1,"truth":1,"facts":2,"fact":1,"accurate":1,"exactly":1,"correct":1,
+    "right":1,"valid":1,"fair":1,"deserved":1,"earned":1,"congrats":2,
+    "congratulations":2,"congratulation":2,"bravo":3,"kudos":2,"cheers":1,"salute":2,
+    "welcome":1,"enjoy":2,"enjoyed":2,"enjoying":2,"pleasure":2,"pleased":2,
+    "satisfying":2,"satisfied":2,"comfortable":1,"cozy":2,"peaceful":2,"calm":1,
+    "relief":1,"relieved":2,"safe":1,"secure":1,"trust":1,"trusted":2,"reliable":2,
+    "quality":1,"premium":1,"top":1,"elite":2,"superior":2,"stellar":3,"prime":1,
+    "improved":2,"improvement":2,"improving":2,"better":2,"upgrade":1,"upgraded":2,
+    "growth":1,"growing":1,"progress":2,"breakthrough":3,"milestone":2,
+    "recommend":2,"recommended":2,"mustsee":2,"mustwatch":2,"worth":1,"worthy":2,
+    "yes":1,"yay":2,"woohoo":3,"wow":2,"whoa":1,"omg":1,"unreal":2,"surreal":1,
+    "beautifully":3,"perfectly":3,"absolutely":1,"finally":1,"deserve":1,
+    "bullish":2,"mooning":2,"moon":1,"pumping":1,"soaring":2,"rally":1,"gains":2
+  };
+
+  var EMOJI = {
+    "😍":3,"🥰":3,"😊":2,"😀":2,"😃":2,"😄":2,"😁":2,"🙂":1,"😆":2,"🤣":2,"😂":2,
+    "❤":3,"❤️":3,"💕":3,"💖":3,"💗":3,"💙":2,"💚":2,"💛":2,"🧡":2,"💜":2,"🖤":1,
+    "👍":2,"👏":2,"🙌":3,"🤝":1,"💪":2,"🔥":3,"✨":2,"⭐":2,"🌟":2,"💯":3,"🏆":3,
+    "🎉":3,"🎊":3,"🥳":3,"😎":2,"🤩":3,"😇":2,"🫶":3,"🤗":2,"😌":1,"☺️":2,"☺":2,
+    "🙏":1,"✅":1,"👑":2,"🐐":3,"🚀":2,"📈":2,"💎":2,"🤑":1,"😋":2,"😻":3,
+    "😡":-3,"🤬":-4,"😠":-2,"😤":-2,"🙄":-2,"😒":-2,"😑":-1,"😐":-1,"🤨":-1,"🧐":0,
+    "😢":-2,"😭":-2,"😞":-2,"😔":-2,"☹️":-2,"☹":-2,"🙁":-1,"😟":-1,"😕":-1,"😩":-2,
+    "😫":-2,"😖":-2,"😣":-2,"💀":-1,"☠️":-2,"☠":-2,"🤮":-4,"🤢":-3,"🤡":-3,"👎":-2,
+    "😬":-1,"😰":-2,"😨":-2,"😱":-2,"😳":-1,"🫠":-1,"🥴":-1,"😵":-2,"💩":-3,"🖕":-4,
+    "🗑️":-3,"🗑":-3,"📉":-2,"💔":-3,"⚠️":-1,"⚠":-1,"❌":-1,"🚩":-2,"😷":-1,"🥀":-2
+  };
+
+  var NEGATORS = ["not","no","never","cannot","cant","can't","dont","don't","doesnt",
+    "doesn't","didnt","didn't","isnt","isn't","arent","aren't","wasnt","wasn't",
+    "werent","weren't","wont","won't","wouldnt","wouldn't","shouldnt","shouldn't",
+    "couldnt","couldn't","aint","ain't","hardly","barely","without","nothing","nobody","neither","nor"];
+  var NEG_SET = {}; NEGATORS.forEach(function (w) { NEG_SET[w] = true; });
+
+  var INTENS = {"very":1.5,"really":1.5,"so":1.3,"extremely":2,"incredibly":2,
+    "absolutely":1.8,"totally":1.5,"completely":1.6,"utterly":1.8,"super":1.5,
+    "insanely":1.8,"ridiculously":1.6,"seriously":1.3,"truly":1.4,"deeply":1.4,
+    "damn":1.4,"freaking":1.5,"fucking":1.6,"literally":1.2,"quite":1.2,"such":1.2,
+    "slightly":0.5,"somewhat":0.6,"kinda":0.6,"kind":0.8,"sorta":0.6,"bit":0.6,"little":0.7};
+
+  function scoreText(text) {
+    var score = 0, hits = 0;
+    // emojis first (they survive tokenization poorly)
+    for (var e in EMOJI) {
+      var idx = text.indexOf(e);
+      while (idx !== -1) { score += EMOJI[e]; hits++; idx = text.indexOf(e, idx + e.length); }
+    }
+    var tokens = text.toLowerCase()
+      .replace(/https?:\/\/\S+/g, " ")
+      .replace(/[.,!?;:"()\[\]{}<>~*_|\/\\]+/g, " ")
+      .split(/\s+/).filter(Boolean);
+    for (var i = 0; i < tokens.length; i++) {
+      var w = tokens[i].replace(/^[@#]/, "");
+      if (!(w in LEX)) continue;
+      var v = LEX[w];
+      // intensifier directly before?
+      var prev = tokens[i - 1] || "";
+      if (prev in INTENS) v *= INTENS[prev];
+      // negation in the 3 tokens before flips the value
+      for (var j = Math.max(0, i - 3); j < i; j++) {
+        if (NEG_SET[tokens[j]]) { v = -v * 0.8; break; }
+      }
+      score += v; hits++;
+    }
+    // exclamation emphasis nudges the existing direction
+    var bangs = (text.match(/!/g) || []).length;
+    if (bangs > 0 && score !== 0) score += (score > 0 ? 0.3 : -0.3) * Math.min(bangs, 3);
+    return { score: Math.round(score * 10) / 10, hits: hits };
+  }
+
+  function classify(s) { return s.score >= 1 ? "pos" : (s.score <= -1 ? "neg" : "neu"); }
+
+  /* ============ Paste-mode cleanup ============ */
+  var CLUTTER = [
+    /^@[\w]+$/,                              // bare handle
+    /^Replying to\b/i,
+    /^Show (more replies|replies|probable spam)/i,
+    /^(Read )?\d+([.,]\d+)?[KMB]? (repl(y|ies)|views?|likes?|reposts?|quotes?|bookmarks?)$/i,
+    /^\d+([.,]\d+)?[KMB]?$/,                 // bare counts
+    /^·$/, /^…$/, /^more$/i, /^GIF$/i, /^Quote$/i, /^Video$/i,
+    /^(\d{1,2}(h|m|s|d)|[A-Z][a-z]{2} \d{1,2}(, \d{4})?)$/, // 2h / Jul 8 / Jul 8, 2025
+    /^The media could not be played/i,
+    /^This post is unavailable/i,
+    /^From [\w\s]+$/
+  ];
+  function looksLikeClutter(line) {
+    for (var i = 0; i < CLUTTER.length; i++) if (CLUTTER[i].test(line)) return true;
+    return false;
+  }
+  function parsePasted(raw, clean) {
+    var lines = raw.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+    if (!clean) return lines;
+    var out = [], skipNames = {};
+    // twitter copy gives "Display Name" then "@handle" — remember names next to handles and drop them
+    for (var i = 0; i < lines.length; i++) {
+      if (/^@[\w]+$/.test(lines[i]) && i > 0) skipNames[i - 1] = true;
+    }
+    for (var k = 0; k < lines.length; k++) {
+      if (skipNames[k]) continue;
+      if (looksLikeClutter(lines[k])) continue;
+      out.push(lines[k]);
+    }
+    return out;
+  }
+
+  /* ============ X API mode ============ */
+  function tweetIdFrom(url) {
+    var m = /(?:twitter\.com|x\.com)\/[^\/]+\/status(?:es)?\/(\d+)/i.exec(url || "");
+    return m ? m[1] : null;
+  }
+  function apiFetch(apiUrl, token, proxy) {
+    var opts = { headers: { "Authorization": "Bearer " + token } };
+    return fetch(apiUrl, opts).catch(function () {
+      return fetch(proxy + encodeURIComponent(apiUrl), opts);
+    }).then(function (r) {
+      if (!r.ok) return r.text().then(function (t) {
+        throw new Error("X API " + r.status + ": " + t.slice(0, 200));
+      });
+      return r.json();
+    });
+  }
+  function fetchReplies(tweetId, token, proxy, onProgress) {
+    var base = "https://api.x.com/2/tweets/search/recent";
+    var q = encodeURIComponent("conversation_id:" + tweetId + " -is:retweet");
+    var texts = [], pages = 0;
+    function page(nextToken) {
+      var u = base + "?query=" + q + "&max_results=100&tweet.fields=text";
+      if (nextToken) u += "&next_token=" + nextToken;
+      return apiFetch(u, token, proxy).then(function (j) {
+        (j.data || []).forEach(function (t) { texts.push(t.text); });
+        pages++;
+        onProgress("Fetched " + texts.length + " replies…");
+        if (j.meta && j.meta.next_token && pages < 15) return page(j.meta.next_token);
+        return texts;
+      });
+    }
+    return page(null);
+  }
+
+  /* ============ UI ============ */
+  var $ = function (id) { return document.getElementById(id); };
+  var mode = "paste";
+  var analyzed = [];   // {text, score, cls}
+
+  $("tabPaste").onclick = function () { setMode("paste"); };
+  $("tabApi").onclick = function () { setMode("api"); };
+  function setMode(m) {
+    mode = m;
+    $("tabPaste").classList.toggle("active", m === "paste");
+    $("tabApi").classList.toggle("active", m === "api");
+    $("panePaste").classList.toggle("active", m === "paste");
+    $("paneApi").classList.toggle("active", m === "api");
+  }
+
+  function setStatus(msg, err) {
+    var el = $("status");
+    el.textContent = msg || "";
+    el.className = "status" + (err ? " err" : "");
+  }
+
+  $("goBtn").onclick = function () {
+    setStatus("");
+    if (mode === "paste") {
+      var replies = parsePasted($("pasteBox").value, $("cleanup").checked);
+      if (!replies.length) { setStatus("Paste at least one reply first.", true); return; }
+      render(replies);
+    } else {
+      var id = tweetIdFrom($("tweetUrl").value);
+      if (!id) { setStatus("That doesn’t look like a tweet URL — it needs /status/<number>.", true); return; }
+      var token = $("bearer").value.trim();
+      if (!token) { setStatus("Paste your X API bearer token (or switch to the paste tab).", true); return; }
+      $("goBtn").disabled = true;
+      setStatus("Fetching replies…");
+      fetchReplies(id, token, $("proxy").value.trim(), setStatus)
+        .then(function (texts) {
+          if (!texts.length) { setStatus("No replies found — note the API only searches the last 7 days.", true); return; }
+          render(texts);
+        })
+        .catch(function (e) { setStatus(e.message, true); })
+        .finally(function () { $("goBtn").disabled = false; });
+    }
+  };
+
+  var SEG_META = { neg: ["Negative", "var(--neg)"], neu: ["Neutral", "var(--neu)"], pos: ["Positive", "var(--pos)"] };
+
+  function render(replies) {
+    analyzed = replies.map(function (t) {
+      var s = scoreText(t);
+      return { text: t, score: s.score, cls: classify(s) };
+    });
+    var n = analyzed.length;
+    var counts = { neg: 0, neu: 0, pos: 0 };
+    analyzed.forEach(function (r) { counts[r.cls]++; });
+    var pct = function (c) { return n ? Math.round(100 * c / n) : 0; };
+
+    $("resultCap").textContent = n + " repl" + (n === 1 ? "y" : "ies") + " analyzed" +
+      (tweetIdFrom($("tweetUrl").value) ? " for tweet " + tweetIdFrom($("tweetUrl").value) : "") + ".";
+    $("heroPct").textContent = pct(counts.neg) + "%";
+    $("heroPct").style.color = counts.neg > counts.pos ? "var(--neg)" : "var(--ink)";
+
+    // ratio line: negative : positive reduced
+    var rl;
+    if (counts.pos === 0 && counts.neg === 0) rl = "No clearly positive or negative replies — all neutral.";
+    else if (counts.pos === 0) rl = "<b>All</b> scored replies are negative.";
+    else if (counts.neg === 0) rl = "<b>All</b> scored replies are positive.";
+    else {
+      var r = counts.neg / counts.pos;
+      rl = "Negative : positive ratio ≈ <b>" +
+        (r >= 1 ? r.toFixed(1) + " : 1" : "1 : " + (1 / r).toFixed(1)) + "</b>" +
+        (r > 1 ? " — the replies lean negative." : r < 1 ? " — the replies lean positive." : " — dead even.");
+    }
+    $("ratioLine").innerHTML = rl;
+
+    // bar
+    var bar = $("bar"); bar.innerHTML = "";
+    ["neg", "neu", "pos"].forEach(function (k) {
+      if (!counts[k]) return;
+      var seg = document.createElement("div");
+      seg.className = "seg " + k;
+      seg.style.width = (100 * counts[k] / n) + "%";
+      seg.dataset.tip = SEG_META[k][0] + ": " + counts[k] + " (" + pct(counts[k]) + "%)";
+      bar.appendChild(seg);
+    });
+
+    // legend
+    $("legend").innerHTML = ["neg", "neu", "pos"].map(function (k) {
+      return '<span class="item"><span class="dot ' + k + '"></span>' + SEG_META[k][0] +
+        ' <b>' + counts[k] + '</b>&nbsp;(' + pct(counts[k]) + '%)</span>';
+    }).join("");
+
+    // tiles
+    $("tiles").innerHTML =
+      '<div class="tile neg"><div class="v">' + counts.neg + '</div><div class="k">Negative</div></div>' +
+      '<div class="tile neu"><div class="v">' + counts.neu + '</div><div class="k">Neutral</div></div>' +
+      '<div class="tile pos"><div class="v">' + counts.pos + '</div><div class="k">Positive</div></div>';
+
+    renderList("all");
+    $("results").style.display = "block";
+    $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+    setStatus("Done — " + n + " replies analyzed.");
+  }
+
+  function renderList(filter) {
+    var box = $("replyList"); box.innerHTML = "";
+    var shown = analyzed.filter(function (r) { return filter === "all" || r.cls === filter; });
+    // negative first when showing all — that's what people came to see
+    shown.sort(function (a, b) { return a.score - b.score; });
+    shown.slice(0, 300).forEach(function (r) {
+      var d = document.createElement("div");
+      d.className = "reply " + r.cls;
+      var edge = document.createElement("div"); edge.className = "edge";
+      var txt = document.createElement("div"); txt.className = "txt"; txt.textContent = r.text;
+      var tag = document.createElement("span"); tag.className = "tag";
+      tag.textContent = SEG_META[r.cls][0] + " " + (r.score > 0 ? "+" : "") + r.score;
+      d.appendChild(edge); d.appendChild(txt); d.appendChild(tag);
+      box.appendChild(d);
+    });
+    if (shown.length > 300) {
+      var more = document.createElement("p");
+      more.className = "fineprint";
+      more.textContent = "Showing the 300 most extreme of " + shown.length + " replies.";
+      box.appendChild(more);
+    }
+  }
+
+  $("chips").addEventListener("click", function (ev) {
+    var chip = ev.target.closest(".chip"); if (!chip) return;
+    document.querySelectorAll(".chip").forEach(function (c) { c.classList.remove("active"); });
+    chip.classList.add("active");
+    renderList(chip.dataset.f);
+  });
+
+  // segment hover tooltip
+  var tip = $("tooltip");
+  $("bar").addEventListener("mousemove", function (ev) {
+    var seg = ev.target.closest(".seg");
+    if (!seg) { tip.style.display = "none"; return; }
+    tip.textContent = seg.dataset.tip;
+    tip.style.display = "block";
+    tip.style.left = Math.min(ev.clientX + 12, window.innerWidth - tip.offsetWidth - 8) + "px";
+    tip.style.top = (ev.clientY - 34) + "px";
+  });
+  $("bar").addEventListener("mouseleave", function () { tip.style.display = "none"; });
+})();
+</script>
+</body>
+</html>
