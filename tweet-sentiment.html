@@ -138,6 +138,25 @@
   .reply.pos .tag { background: var(--pos-soft); color: #1c5cab; }
 
   .fineprint { font-size: 12.5px; color: var(--muted); margin-top: 16px; }
+
+  /* ---- Small screens ---- */
+  @media (max-width: 480px) {
+    .wrap { padding: 12px 10px 48px; }
+    .card { padding: 16px 14px; }
+    header.hero h1 { font-size: 22px; }
+    header.hero .sub { font-size: 14px; }
+    .tabs { flex-direction: column; }
+    .hero-num .big { font-size: 38px; }
+    .tiles { gap: 8px; }
+    .tile .v { font-size: 20px; }
+    .bar { height: 30px; }
+    .reply { flex-direction: column; gap: 6px; padding: 10px 12px; }
+    .reply .edge { display: none; }
+    .reply.neg { border-left: 4px solid var(--neg); }
+    .reply.neu { border-left: 4px solid var(--neu); }
+    .reply.pos { border-left: 4px solid var(--pos); }
+    .reply .tag { align-self: flex-start; }
+  }
   details.help { margin-top: 10px; font-size: 13.5px; color: var(--muted); }
   details.help summary { cursor: pointer; font-weight: 700; color: var(--brand); }
   details.help ol { padding-left: 20px; }
@@ -608,6 +627,17 @@
     tip.style.top = (ev.clientY - 34) + "px";
   });
   $("bar").addEventListener("mouseleave", function () { tip.style.display = "none"; });
+  // tap support — touch has no hover, so show the tooltip above the tapped segment briefly
+  $("bar").addEventListener("click", function (ev) {
+    var seg = ev.target.closest(".seg"); if (!seg) return;
+    var r = seg.getBoundingClientRect();
+    tip.textContent = seg.dataset.tip;
+    tip.style.display = "block";
+    tip.style.left = Math.max(8, Math.min(r.left + r.width / 2 - tip.offsetWidth / 2, window.innerWidth - tip.offsetWidth - 8)) + "px";
+    tip.style.top = (r.top - 40) + "px";
+    clearTimeout(tip._t);
+    tip._t = setTimeout(function () { tip.style.display = "none"; }, 1800);
+  });
 })();
 </script>
 </body>
